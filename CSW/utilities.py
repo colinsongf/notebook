@@ -24,31 +24,51 @@ from owslib import fes
 from owslib.ows import ExceptionReport
 
 
-name_list = ['water_surface_height_above_reference_datum',
-             'sea_surface_height_above_geoid',
-             'sea_surface_elevation',
-             'sea_surface_height_above_reference_ellipsoid',
-             'sea_surface_height_above_sea_level',
+name_list = ['water level',
              'sea_surface_height',
-             'water level']
+             'sea_surface_elevation',
+             'sea_surface_height_above_geoid',
+             'sea_surface_height_above_sea_level',
+             'water_surface_height_above_reference_datum',
+             'sea_surface_height_above_reference_ellipsoid']
 
 sos_name = 'water_surface_height_above_reference_datum'
 
 
-def get_Coops_longName(sta):
+def dateRange(start_date='1900-01-01', stop_date='2100-01-01',
+              constraint='overlaps'):
+    """Hopefully something like this will be implemented in fes soon."""
+    if constraint == 'overlaps':
+        propertyname = 'apiso:TempExtent_begin'
+        start = fes.PropertyIsLessThanOrEqualTo(propertyname=propertyname,
+                                                literal=stop_date)
+        propertyname = 'apiso:TempExtent_end'
+        stop = fes.PropertyIsGreaterThanOrEqualTo(propertyname=propertyname,
+                                                  literal=start_date)
+    elif constraint == 'within':
+        propertyname = 'apiso:TempExtent_begin'
+        start = fes.PropertyIsGreaterThanOrEqualTo(propertyname=propertyname,
+                                                   literal=start_date)
+        propertyname = 'apiso:TempExtent_end'
+        stop = fes.PropertyIsLessThanOrEqualTo(propertyname=propertyname,
+                                               literal=stop_date)
+    return start, stop
+
+
+def get_Coops_longName(station):
     """Get longName for specific station from COOPS SOS using DescribeSensor
     request."""
     url = ('http://opendap.co-ops.nos.noaa.gov/ioos-dif-sos/SOS?service=SOS&'
            'request=DescribeSensor&version=1.0.0&'
            'outputFormat=text/xml;subtype="sensorML/1.0.1"&'
-           'procedure=urn:ioos:station:NOAA.NOS.CO-OPS:%s') % sta
+           'procedure=urn:ioos:station:NOAA.NOS.CO-OPS:%s') % station
     tree = etree.parse(urlopen(url))
     root = tree.getroot()
     path = "//sml:identifier[@name='longName']/sml:Term/sml:value/text()"
     namespaces = dict(sml="http://www.opengis.net/sensorML/1.0.1")
     longName = root.xpath(path, namespaces=namespaces)
     if len(longName) == 0:
-        longName = sta
+        longName = station
     return longName[0]
 
 
@@ -77,8 +97,8 @@ def coops2df(collector, coops_id, sos_name):
 
 
 def mod_df(arr, timevar, istart, istop, mod_name, ts):
-    """Return time series (DataFrame) from model interpolated onto uniform
-    time base."""
+    """Return time series (DataFrame) from model interpolated onto uniform time
+    base."""
     t = timevar.points[istart:istop]
     jd = timevar.units.num2date(t)
 
@@ -102,24 +122,6 @@ def mod_df(arr, timevar, istart, istop, mod_name, ts):
     return c
 
 
-def dateRange(start_date='1900-01-01', stop_date='2100-01-01',
-              constraint='overlaps'):
-    """Hopefully something like this will be implemented in fes soon."""
-    if constraint == 'overlaps':
-        begin = 'apiso:TempExtent_begin'
-        end = 'apiso:TempExtent_end'
-        start = fes.PropertyIsLessThanOrEqualTo(propertyname=begin,
-                                                literal=stop_date)
-        stop = fes.PropertyIsGreaterThanOrEqualTo(propertyname=end,
-                                                  literal=start_date)
-    elif constraint == 'within':
-        start = fes.PropertyIsGreaterThanOrEqualTo(propertyname=begin,
-                                                   literal=start_date)
-        stop = fes.PropertyIsLessThanOrEqualTo(propertyname=end,
-                                               literal=stop_date)
-    return start, stop
-
-
 def service_urls(records, service='odp:url'):
     """Extract service_urls of a specific type (DAP, SOS) from records."""
     service_string = 'urn:x-esri:specification:ServiceType:' + service
@@ -135,7 +137,7 @@ def service_urls(records, service='odp:url'):
 
 
 def nearxy(x, y, xi, yi):
-    """Find the indices x[i] of arrays (x,y) closest to the points (xi,yi)."""
+    """Find the indices x[i] of arrays (x,y) closest to the points (xi, yi)."""
     ind = np.ones(len(xi), dtype=int)
     dd = np.ones(len(xi), dtype='float')
     for i in np.arange(len(xi)):
@@ -146,29 +148,27 @@ def nearxy(x, y, xi, yi):
 
 
 def find_ij(x, y, d, xi, yi):
-    """Find non-NaN cell d[j, i] that are closest to points (xi, yi)."""
+    """Find non-NaN cell d[j,i] that are closest to points (xi, yi)."""
     index = np.where(~np.isnan(d.flatten()))[0]
-    ind, dd = nearxy(x.flatten()[index],
-                     y.flatten()[index], xi, yi)
+    ind, dd = nearxy(x.flatten()[index], y.flatten()[index], xi, yi)
     j, i = ind2ij(x, index[ind])
     return i, j, dd
 
 
 def find_timevar(cube):
-    """Return the time variable from Iris.  This is a workaround for
-    Iris having problems with FMRC aggregations, which produce two time
-    coordinates."""
+    """Return the time variable from Iris. This is a workaround for iris having
+    problems with FMRC aggregations, which produce two time coordinates."""
     try:
         cube.coord(axis='T').rename('time')
-    except:
+    except:  # Be more specific.
         pass
     timevar = cube.coord('time')
     return timevar
 
 
 def ind2ij(a, index):
-    """Returns a[j,i] for a.ravel()[index]."""
+    """Returns a[j, i] for a.ravel()[index]."""
     n, m = a.shape
-    j = np.ceil(index // m)
+    j = np.int_(np.ceil(index//m))
     i = np.remainder(index, m)
     return i, j
