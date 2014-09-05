@@ -118,7 +118,7 @@ def get_cube(url, name_list=None, bbox=None, time=None, units=None):
         cube = time_slice(cube, start, stop)
     if units:
         if not cube.units == units:
-            cube.convert_units('m')
+            cube.convert_units(units)
     return cube
 
 
@@ -164,13 +164,13 @@ def plot_surface(cube, model=''):
     plt.title('{}: {}\nVariable: {} level: {}'.format(model, t, c.name(), idx))
 
 
-# In[11]:
+# In[4]:
 
 print(iris.__version__)
 print(iris.__file__)
 
 
-# In[4]:
+# In[5]:
 
 from datetime import datetime, timedelta
 
@@ -181,19 +181,21 @@ name_list = ['sea_water_potential_temperature', 'sea_water_temperature']
 
 bbox = [-76.4751, 38.3890, -71.7432, 42.9397]
 
+units = Unit('Kelvin')
 
-# In[5]:
+
+# In[6]:
 
 model = 'MARACOOS/ESPRESSO'
 url = 'http://tds.marine.rutgers.edu/thredds/dodsC/roms/espresso/2009_da/his'
 
 with timeit():
     cube = get_cube(url, name_list=name_list, bbox=bbox,
-                    time=start, units=Unit('celsius'))
+                    time=start, units=units)
     plot_surface(cube, model)
 
 
-# In[6]:
+# In[7]:
 
 model = 'USGS/COAWST'
 url = 'http://geoport.whoi.edu/thredds/dodsC/coawst_4/use/fmrc/'
@@ -201,11 +203,11 @@ url += 'coawst_4_use_best.ncd'
 
 with timeit():
     cube = get_cube(url, name_list=name_list, bbox=bbox,
-                    time=start, units=Unit('celsius'))
+                    time=start, units=units)
     plot_surface(cube, model)
 
 
-# In[7]:
+# In[8]:
 
 model = 'HYCOM'
 url = 'http://ecowatch.ncddc.noaa.gov/thredds/dodsC/hycom/hycom_reg1_agg/'
@@ -213,11 +215,11 @@ url += 'HYCOM_Region_1_Aggregation_best.ncd'
 
 with timeit():
     cube = get_cube(url, name_list=name_list, bbox=bbox,
-                    time=start, units=Unit('celsius'))
+                    time=start, units=units)
     plot_surface(cube, model)
 
 
-# In[8]:
+# In[9]:
 
 model = 'NYHOP'
 url = 'http://colossus.dl.stevens-tech.edu/thredds/dodsC/fmrc/NYBight/'
@@ -225,17 +227,17 @@ url += 'NYHOPS_Forecast_Collection_for_the_New_York_Bight_best.ncd'
 
 with timeit():
     cube = get_cube(url, name_list=name_list, bbox=bbox,
-                    time=start, units=Unit('celsius'))
+                    time=start, units=units)
     plot_surface(cube, model)
 
 
-# In[9]:
+# In[10]:
 
 model = 'RUTGERS/NWA'
 url = 'http://oceanus.esm.rutgers.edu:8090/thredds/dodsC/ROMS/NWA/Run03/Output'
 
 with timeit():
     cube = get_cube(url, name_list=name_list, bbox=bbox,
-                    time=start, units=Unit('celsius'))
+                    time=start, units=units)
     plot_surface(cube, model)
 
