@@ -56,11 +56,18 @@ df[['Hsig','Wlevel']].plot()
 
 # <codecell>
 
+import calendar
+times     = [ calendar.timegm(x.timetuple()) for x in df.index ]
+times=np.asarray(times, dtype=np.int64)
+
+# <codecell>
+
 def pd_to_secs(df):
+    import calendar
     """
     convert a pandas datetime index to seconds since 1970
     """
-    return [x.total_seconds() for x in df.index.to_pydatetime()-pd.to_datetime('1970-01-01')]
+    return np.asarray([ calendar.timegm(x.timetuple()) for x in df.index ], dtype=np.int64)
 
 # <codecell>
 
@@ -68,15 +75,12 @@ secs = pd_to_secs(df)
 
 # <codecell>
 
+# z is positive down, will generate ADCP if all z is not the same, simple time series otherwise
 z = np.zeros_like(secs)
 
 # <codecell>
 
 values = df['Hsig'].values
-
-# <codecell>
-
-times=np.asarray(secs, dtype=np.int64)
 
 # <codecell>
 
@@ -99,7 +103,7 @@ create.create_timeseries_file(output_directory='/usgs/data2/notebook/data',
                               full_station_urn=station_urn,
                               full_sensor_urn=sensor_urn,
                               sensor_vertical_datum=0.0,
-                              times=times,
+                              times=secs,
                               verticals=z, 
                               values=values,
                               attributes=attributes,
