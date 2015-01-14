@@ -9,9 +9,7 @@
 # <codecell>
 
 import pandas as pd
-import urllib2
 import numpy as np
-import seawater as sw
 import matplotlib.pyplot as plt
 %matplotlib inline
 
@@ -41,22 +39,21 @@ stop =  '2013-06-07T00:00:00Z'
 
 #construct the ERDDAP URL
 url='http://geoport.whoi.edu/erddap/tabledap/tower_65ce_ba2b_9a66.csvp?\
-time,%s,station_id,longitude,latitude,altitude&time>=%s&time<=%s' % (vars,start,stop)
+time,%s&time>=%s&time<=%s' % (vars,start,stop)
 df = pd.read_csv(url,index_col=0,parse_dates=True)
 
 # <codecell>
 
-df2=df.iloc[:,0:2]
-df2.plot(figsize=(12,4));
+df.plot(figsize=(12,4));
 
 # <codecell>
 
 # List last ten records
-df2.tail(10)
+df.tail(10)
 
 # <codecell>
 
-df2.describe()
+df.describe()
 
 # <markdowncell>
 
@@ -70,7 +67,7 @@ Image(url=url,format=u'png')
 
 # <codecell>
 
-!git add *MPALA*
+!git push
 
 # <codecell>
 
@@ -79,4 +76,7 @@ pwd
 # <codecell>
 
 cd /usgs/data2/notebook/ERDDAP
+
+# <codecell>
+
 
