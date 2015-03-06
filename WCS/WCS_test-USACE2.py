@@ -10,7 +10,14 @@
 from owslib.wcs import WebCoverageService
 import numpy as np
 import numpy.ma as ma
+import matplotlib.pyplot as plt
+from owslib.wcs import WebCoverageService
+%matplotlib inline
+
+# <codecell>
+
 endpoint='http://gis.sam.usace.army.mil/server/services/JALBTCX/NCMP_BareEarth_1m/ImageServer/WCSServer?request=GetCapabilities&service=WCS'
+#endpoint='http://gis.sam.usace.army.mil/server/services/JALBTCX/NCMP_2005_MA_BareEarth_1m/ImageServer/WCSServer?request=GetCapabilities&service=WCS'
 
 # <codecell>
 
@@ -36,7 +43,7 @@ print lidar.supportedFormats
 # <codecell>
 
 # try Plum Island Sound Region
-bbox = (-70.825,42.701,-70.7526,42.762)
+bbox = (-70.825,42.671,-70.7526,42.762)
 output = wcs.getCoverage(identifier="1",bbox=bbox,crs='EPSG:4326',format='GeoTIFF',
                          resx=0.0001, resy=0.0001)
 
@@ -81,18 +88,15 @@ print x0,x1,y1,y0
 
 # <codecell>
 
-elevation=ma.masked_where(elevation==0,elevation)
+elevation=ma.masked_equal(elevation,0)
 
 # <codecell>
 
-plt.figure(figsize=(8,8))
+plt.figure(figsize=(8,10))
 ax = plt.axes(projection=ccrs.PlateCarree())
 tiler = MapQuestOpenAerial()
 ax.add_image(tiler, 14)
 plt.imshow(elevation, cmap='jet', extent=[x0, x1, y1, y0],
            transform=ccrs.PlateCarree(),alpha=0.6,zorder=2);
 ax.gridlines(draw_labels=True,zorder=3);
-
-# <codecell>
-
 
