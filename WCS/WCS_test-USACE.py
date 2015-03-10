@@ -7,7 +7,12 @@
 
 # <codecell>
 
+import matplotlib.pyplot as plt
 from owslib.wcs import WebCoverageService
+%matplotlib inline
+
+# <codecell>
+
 endpoint='http://gis.sam.usace.army.mil/server/services/JALBTCX/NCMP_BareEarth_1m/ImageServer/WCSServer?request=GetCapabilities&service=WCS'
 
 # <codecell>
