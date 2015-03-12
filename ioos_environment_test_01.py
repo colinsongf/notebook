@@ -1,17 +1,20 @@
+# -*- coding: utf-8 -*-
+# <nbformat>3.0</nbformat>
 
-# coding: utf-8
+# <headingcell level=1>
 
-# # IOOS Environment Test 01
+# IOOS Environment Test 01
+
+# <markdowncell>
 
 # Before running this notebook, see the [instructions for setting up the IOOS Python Environment](
 # https://github.com/ioos/conda-recipes/wiki/Setting-up-the-IOOS-Python-environment-for-Linux)
 
-# In[1]:
+# <codecell>
 
 import iris
 import pytz
 from datetime import datetime, timedelta
-
 from utilities import CF_names
 
 stop = datetime(2014, 7, 7, 12)
@@ -24,8 +27,7 @@ name_list = CF_names['sea_water_temperature']
 
 units = iris.unit.Unit('celsius')
 
-
-# In[2]:
+# <codecell>
 
 import warnings
 from oceans import wrap_lon180
@@ -39,36 +41,30 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Suppress iris warnings.
     cube = quick_load_cubes(url, name_list, callback=None, strict=True)
 
-
-# In[3]:
+# <codecell>
 
 cube
 
-
-# In[4]:
+# <codecell>
 
 cube.coord(axis='X').points[:20]
 
-
-# In[5]:
+# <codecell>
 
 # Just found a bug in proc_cube().  Meanwhile lets skip the constraint step.
 cube.coord(axis='X').points = wrap_lon180(cube.coord(axis='X').points)
 
-
-# In[6]:
+# <codecell>
 
 cube.coord(axis='X').points[:20]
 
-
-# In[7]:
+# <codecell>
 
 # cube = proc_cube(cube, bbox=bbox, time=(start, stop), units=units)
 cube = get_surface(cube)  # Get a 2D surface cube.  I am working on 3D...
 cube
 
-
-# In[8]:
+# <codecell>
 
 from utilities import get_nearest_water, make_tree
 
@@ -81,15 +77,13 @@ series, dist, idx = get_nearest_water(cube, tree, obs['lon'], obs['lat'], **kw)
 print('Distance (degrees): {}'.format(dist))
 print('Indices: {!r}'.format(idx))
 
-
-# In[9]:
+# <codecell>
 
 series
 
+# <codecell>
 
-# In[10]:
-
-get_ipython().magic(u'matplotlib inline')
+%matplotlib inline
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 from cartopy.feature import NaturalEarthFeature
@@ -98,8 +92,10 @@ from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 states = NaturalEarthFeature(category='cultural', scale='50m', facecolor='none',
                              name='admin_1_states_provinces_shp')
 
+# <codecell>
+
 def make_map(projection=ccrs.PlateCarree()):
-    fig, ax = plt.subplots(figsize=(8, 6),
+    fig, ax = plt.subplots(figsize=(10, 10),
                            subplot_kw=dict(projection=projection))
     ax.coastlines(resolution='50m')
     gl = ax.gridlines(draw_labels=True)
@@ -108,8 +104,7 @@ def make_map(projection=ccrs.PlateCarree()):
     gl.yformatter = LATITUDE_FORMATTER
     return fig, ax
 
-
-# In[11]:
+# <codecell>
 
 import numpy.ma as ma
 from oceans import cm
@@ -140,8 +135,7 @@ ax.plot(series.coord(axis='X').points,
 ax.add_feature(states, edgecolor='gray')
 leg = ax.legend(numpoints=1, loc='upper left')
 
-
-# In[12]:
+# <codecell>
 
 import iris.quickplot as qplt
 
@@ -151,18 +145,11 @@ series.data = ma.masked_greater(series.data, 999)
 fig, ax = plt.subplots(figsize=(9, 2.75))
 l, = qplt.plot(series)
 
+# <codecell>
 
-# In[13]:
+!conda info
 
-get_ipython().system(u'conda info')
+# <codecell>
 
-
-# In[14]:
-
-get_ipython().system(u'conda list')
-
-
-# In[ ]:
-
-
+!conda list
 
