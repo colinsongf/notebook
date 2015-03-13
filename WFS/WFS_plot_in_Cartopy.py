@@ -7,11 +7,14 @@
 
 # <codecell>
 
+import numpy as np
+import matplotlib.pyplot as plt
 import geojson
 from owslib.wfs import WebFeatureService
 from shapely.geometry import Polygon, mapping, asShape, shape
 import cartopy.crs as ccrs
 from cartopy.io.img_tiles import MapQuestOpenAerial, MapQuestOSM, OSM
+%matplotlib inline
 
 # <codecell>
 
@@ -83,7 +86,7 @@ print geo['type']
 
 geodetic = ccrs.Geodetic(globe=ccrs.Globe(datum='WGS84'))
 
-figure(figsize=(12,12))
+plt.figure(figsize=(12,12))
 # Open Source Imagery from MapQuest (max zoom = 16?)
 tiler = MapQuestOpenAerial()
 # Open Street Map (max zoom = 18?)
