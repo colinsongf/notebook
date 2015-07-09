@@ -7,12 +7,18 @@
 
 # <codecell>
 
+import matplotlib.pyplot as plt
+import numpy as np
 import datetime as dt
 import time
+%matplotlib inline
 
 # <markdowncell>
 
-# Note: `iris` is not a default package in Wakari or Anaconda, [but installation is easy](https://github.com/ioos/conda-recipes/issues/11). 
+# Note: `iris` is not a default package in Wakari or Anaconda, but just do 
+# ```
+# conda install -c https://conda.binstar.org/scitools iris
+# ```
 
 # <codecell>
 
@@ -64,19 +70,33 @@ def var_lev_date(url=None,var=None,mytime=None,lev=0,subsample=1):
 
 # <codecell>
 
-def myplot(slice,model=None):
-    # make the plot
-    figure(figsize=(12,8))
-    lat=slice.coord(axis='Y').points
-    lon=slice.coord(axis='X').points
-    time=slice.coord('time')[0]
-    subplot(111,aspect=(1.0/cos(mean(lat)*pi/180.0)))
-    pcolormesh(lon,lat,ma.masked_invalid(slice.data));
-    colorbar()
-    grid()
+import cartopy.crs as ccrs
+from cartopy.io import shapereader
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+
+def make_map(projection=ccrs.PlateCarree(), figsize=(12,8)):
+    fig, ax = plt.subplots(figsize=figsize,
+                           subplot_kw=dict(projection=projection))
+    gl = ax.gridlines(draw_labels=True)
+    gl.xlabels_top = gl.ylabels_right = False
+    gl.xformatter = LONGITUDE_FORMATTER
+    gl.yformatter = LATITUDE_FORMATTER
+    return fig, ax
+
+# <codecell>
+
+def map_plot(c,model=None):
+    fig, ax = make_map()
+    lat = c.coord(axis='Y').points
+    lon = c.coord(axis='X').points
+    time = c.coord('time')[0]
+    cs = plt.pcolormesh(lon,lat,
+                    np.ma.masked_invalid(c.data), zorder=1, cmap=plt.cm.rainbow)
+    plt.colorbar()
     date=time.units.num2date(time.points)
     date_str=date[0].strftime('%Y-%m-%d %H:%M:%S %Z')
-    plt.title('%s: %s: %s' % (model,slice.long_name,date_str));
+    plt.title('%s: %s: %s' % (model,c.long_name,date_str));
+    _ = ax.coastlines('10m')
 
 # <codecell>
 
@@ -87,12 +107,12 @@ print mytime
 
 # <codecell>
 
-model='USGS/COAWST'
-url='http://geoport.whoi.edu/thredds/dodsC/coawst_4/use/fmrc/coawst_4_use_best.ncd'
-var='sea_water_potential_temperature'
-lev=-1
-slice=var_lev_date(url=url,var=var, mytime=mytime, lev=lev, subsample=1)
-myplot(slice,model=model)
+model = 'USGS/COAWST'
+url = 'http://geoport.whoi.edu/thredds/dodsC/coawst_4/use/fmrc/coawst_4_use_best.ncd'
+var = 'sea_water_potential_temperature'
+lev = -1
+icube = var_lev_date(url=url, var=var, mytime=mytime, lev=lev, subsample=1)
+map_plot(icube, model=model)
 
 # <codecell>
 
@@ -100,8 +120,8 @@ model='MARACOOS/ESPRESSO'
 url='http://tds.marine.rutgers.edu/thredds/dodsC/roms/espresso/2013_da/his_Best/ESPRESSO_Real-Time_v2_History_Best_Available_best.ncd'
 var='sea_water_potential_temperature'
 lev=-1
-slice=var_lev_date(url=url,var=var, mytime=mytime, lev=lev)
-myplot(slice,model=model)
+icube = var_lev_date(url=url,var=var, mytime=mytime, lev=lev)
+map_plot(icube, model=model)
 
 # <codecell>
 
@@ -109,8 +129,8 @@ model='SECOORA/NCSU'
 url='http://omgsrv1.meas.ncsu.edu:8080/thredds/dodsC/fmrc/sabgom/SABGOM_Forecast_Model_Run_Collection_best.ncd'
 var='sea_water_potential_temperature'
 lev=-1
-slice=var_lev_date(url=url,var=var, mytime=mytime, lev=lev)
-myplot(slice,model=model)
+icube = var_lev_date(url=url,var=var, mytime=mytime, lev=lev)
+map_plot(icube, model=model)
 
 # <codecell>
 
@@ -118,8 +138,8 @@ model='CENCOOS/UCSC'
 url='http://oceanmodeling.pmc.ucsc.edu:8080/thredds/dodsC/ccsnrt/fmrc/CCSNRT_Aggregation_best.ncd'
 var='potential temperature'
 lev=-1
-slice=var_lev_date(url=url,var=var, mytime=mytime, lev=lev)
-myplot(slice,model=model)
+icube = var_lev_date(url=url,var=var, mytime=mytime, lev=lev)
+map_plot(icube, model=model)
 
 # <codecell>
 
@@ -127,8 +147,8 @@ model='HIOOS'
 url='http://oos.soest.hawaii.edu/thredds/dodsC/hioos/roms_assim/hiig/ROMS_Hawaii_Regional_Ocean_Model_Assimilation_best.ncd'
 var='sea_water_potential_temperature'
 lev=0
-slice=var_lev_date(url=url,var=var, mytime=mytime, lev=lev)
-myplot(slice,model=model)
+icube = var_lev_date(url=url,var=var, mytime=mytime, lev=lev)
+map_plot(icube, model=model)
 
 # <codecell>
 
@@ -137,17 +157,10 @@ url='http://ecowatch.ncddc.noaa.gov/thredds/dodsC/hycom/hycom_reg1_agg/HYCOM_Reg
 var='sea_water_temperature'  
 lev=1
 subsample=1
-slice=var_lev_date(url=url,var=var, mytime=mytime, lev=lev, subsample=subsample)
-myplot(slice,model=model)
+icube = var_lev_date(url=url,var=var, mytime=mytime, lev=lev, subsample=subsample)
+map_plot(icube, model=model)
 
 # <codecell>
 
-print slice
-
-# <codecell>
-
-!ls IOOS*
-
-# <codecell>
-
+print icube
 
