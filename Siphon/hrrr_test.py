@@ -69,7 +69,7 @@ fig = plt.figure(figsize=(12,8))
 ax = plt.axes(projection=ccrs.PlateCarree())
 ax.pcolormesh(ncvar.x.data,ncvar.y.data,ncvar[0,:,:].data, transform=crs,zorder=0)
 ax.coastlines(resolution='10m',color='black',zorder=1)
-ax.gridlines();
+ax.gridlines(draw_labels=True);
 
 # <codecell>
 
