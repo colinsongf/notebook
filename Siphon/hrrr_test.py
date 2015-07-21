@@ -3,6 +3,16 @@
 
 # <codecell>
 
+import matplotlib.pyplot as plt
+import numpy as np
+%matplotlib inline
+
+# <headingcell level=2>
+
+# Extract HRRR data using Unidata's Siphon package
+
+# <codecell>
+
 # Resolve the latest HRRR dataset
 from siphon.catalog import TDSCatalog
 latest_hrrr = TDSCatalog('http://thredds-jumbo.unidata.ucar.edu/thredds/catalog/grib/HRRR/CONUS_3km/surface/latest.xml')
@@ -26,6 +36,29 @@ data = ncss.get_data_raw(query)
 with open('test.nc', 'wb') as outf:
     outf.write(data)
 
+# <headingcell level=2>
+
+# Try reading extracted data with Iris
+
+# <codecell>
+
+import iris
+cubes = iris.load('test.nc')
+cubes
+
+# <codecell>
+
+cubes[0].coords()
+
+# <codecell>
+
+import iris.quickplot as qplt
+qplt.contourf(cubes[0][0,:,:])
+
+# <headingcell level=2>
+
+# Try reading extracted data with Xray
+
 # <codecell>
 
 import xray
@@ -43,14 +76,14 @@ nc
 ncvar = nc['Temperature_surface']
 ncvar
 
-# <codecell>
+# <headingcell level=2>
 
-import matplotlib.pyplot as plt
-import numpy as np
+# Try plotting the LambertConformal data with Cartopy
+
+# <codecell>
 
 import cartopy
 import cartopy.crs as ccrs
-%matplotlib inline
 
 # <codecell>
 
@@ -73,23 +106,18 @@ ax.gridlines(draw_labels=True);
 
 # <codecell>
 
-import iris
+crs2 = ccrs.PlateCarree()
+x,y = np.meshgrid(ncvar.x.data, ncvar.y.data)
+a = crs2.transform_points(crs,x,y)
+print(a.shape)
 
 # <codecell>
 
-cubes = iris.load('test.nc')
-
-# <codecell>
-
-cubes[0]
-
-# <codecell>
-
-import iris.quickplot as qplt
-
-# <codecell>
-
-qplt.contourf(cubes[0][0,:,:])
+fig = plt.figure(figsize=(12,8))
+ax = plt.axes(projection=ccrs.PlateCarree())
+ax.pcolormesh(a[:,:,0],a[:,:,1],ncvar[0,:,:].data, transform=crs,zorder=0)
+ax.coastlines(resolution='10m',color='black',zorder=1)
+ax.gridlines(draw_labels=True);
 
 # <codecell>
 
