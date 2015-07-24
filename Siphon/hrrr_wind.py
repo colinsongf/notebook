@@ -28,12 +28,17 @@ query = ncss.query()
 
 # <codecell>
 
-query.all_times().accept('netcdf4').variables('Temperature_surface')
+dap_url = hrrr_ds.access_urls['OPENDAP']
+
+# <codecell>
+
+query.all_times().accept('netcdf4').variables('u-component_of_wind_height_above_ground',
+                                              'v-component_of_wind_height_above_ground')
 query.lonlat_box(45, 41., -63, -71.5)
 
 # Get the raw bytes and write to a file.
 data = ncss.get_data_raw(query)
-with open('test.nc', 'wb') as outf:
+with open('test_uv.nc', 'wb') as outf:
     outf.write(data)
 
 # <headingcell level=2>
@@ -46,7 +51,7 @@ import xray
 
 # <codecell>
 
-nc = xray.open_dataset('test.nc')
+nc = xray.open_dataset('test_uv.nc')
 
 # <codecell>
 
@@ -54,13 +59,18 @@ nc
 
 # <codecell>
 
-var='Temperature_surface'
-ncvar = nc[var]
-ncvar
+uvar_name='u-component_of_wind_height_above_ground'
+vvar_name='v-component_of_wind_height_above_ground'
+uvar = nc[uvar_name]
+vvar = nc[vvar_name]
 
 # <codecell>
 
-grid = nc[ncvar.grid_mapping]
+uvar
+
+# <codecell>
+
+grid = nc[uvar.grid_mapping]
 grid
 
 # <codecell>
@@ -82,8 +92,11 @@ import cartopy.crs as ccrs
 # <codecell>
 
 #cartopy wants meters, not km
-x = ncvar.x.data*1000.
-y = ncvar.y.data*1000.
+x = uvar.x.data*1000.
+y = uvar.y.data*1000.
+
+# <codecell>
+
 
 # <codecell>
 
@@ -95,25 +108,36 @@ crs = ccrs.LambertConformal(central_longitude=lon0, central_latitude=lat0,
 
 # <codecell>
 
-print(ncvar.x.data.shape)
-print(ncvar.y.data.shape)
-print(ncvar.data.shape)
+print(uvar.x.data.shape)
+print(uvar.y.data.shape)
+print(uvar.data.shape)
 
 # <codecell>
 
-ncvar[6,:,:].time1.data
+uvar[6,:,:].time1.data
 
 # <codecell>
 
 istep =6
-fig = plt.figure(figsize=(12,8))
+klev = 0
+u = uvar[istep,klev,:,:].data
+v = vvar[istep,klev,:,:].data
+spd = np.sqrt(u*u+v*v)
+
+# <codecell>
+
+fig = plt.figure(figsize=(10,16))
 ax = plt.axes(projection=ccrs.PlateCarree())
-ax.pcolormesh(x,y,ncvar[istep,:,:].data, transform=crs,zorder=0)
+c = ax.pcolormesh(x,y,spd, transform=crs,zorder=0)
+cb = fig.colorbar(c,orientation='vertical',shrink=0.5)
+cb.set_label('m/s')
 ax.coastlines(resolution='10m',color='black',zorder=1)
+ax.quiver(x,y,u,v,transform=crs,zorder=2,scale=100)
 gl = ax.gridlines(draw_labels=True)
 gl.xlabels_top = False
 gl.ylabels_right = False
-plt.title(ncvar[istep].time1.data);
+plt.title(uvar[istep].time1.data);
+plt.axis([-72,-69.8,40.6, 43.5]);
 
 # <codecell>
 
