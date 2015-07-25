@@ -16,10 +16,10 @@ import datetime
 
 # lon/lat bounding box [lon_min, lon_max, lat_min, lat_max]
 ax = [-72,-69.6,40.6, 43.5]
-
+ax = [-71.1, -70.2, 42.4, 42.8]
 # Enter time in EDT
 date = datetime.datetime.now()
-date = datetime.datetime(2015,7,25,1,0,0)
+date = datetime.datetime(2015,7,25,12,0,0)
 # convert from EDT to UTC
 date += datetime.timedelta(hours=+5)
 date
@@ -135,7 +135,7 @@ zmet=10. # want 10 m height
 kwargs = {timecoord: date}
 uv = uvar.sel(height_above_ground5=zmet ,method='nearest', **kwargs)
 vv = vvar.sel(height_above_ground5=zmet ,method='nearest', **kwargs)
-tim = uv.time3.data
+tim = uv[timecoord].data
 
 # <codecell>
 
@@ -191,7 +191,7 @@ print(spd2.shape)
 
 fig = plt.figure(figsize=(14,14))
 ax1 = plt.axes(projection=ccrs.PlateCarree())
-c = ax1.pcolormesh(x,y,spd2, transform=crs,zorder=0,vmin=0,vmax=10)
+c = ax1.pcolormesh(x,y,spd, transform=crs,zorder=0,vmin=0,vmax=10)
 cb = fig.colorbar(c,orientation='vertical',shrink=0.5)
 cb.set_label('m/s')
 ax1.coastlines(resolution='10m',color='black',zorder=1)
@@ -201,6 +201,9 @@ gl.xlabels_top = False
 gl.ylabels_right = False
 plt.title(tim);
 plt.axis(ax);
+
+# <codecell>
+
 
 # <codecell>
 
