@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import datetime as dt
 import time
+import cmtamu
 %matplotlib inline
 
 # <markdowncell>
@@ -91,7 +92,9 @@ def map_plot(c,model=None):
     lon = c.coord(axis='X').points
     time = c.coord('time')[0]
     cs = plt.pcolormesh(lon,lat,
-                    np.ma.masked_invalid(c.data), zorder=1, cmap=plt.cm.rainbow)
+                    np.ma.masked_invalid(c.data),
+                    vmin = 4, vmax= 32.,
+                    zorder=1, cmap=cmtamu.optiond)
     plt.colorbar()
     date=time.units.num2date(time.points)
     date_str=date[0].strftime('%Y-%m-%d %H:%M:%S %Z')
@@ -156,8 +159,7 @@ model='Global RTOFS/NCEP'
 url='http://ecowatch.ncddc.noaa.gov/thredds/dodsC/hycom/hycom_reg1_agg/HYCOM_Region_1_Aggregation_best.ncd'
 var='sea_water_temperature'  
 lev=1
-subsample=1
-icube = var_lev_date(url=url,var=var, mytime=mytime, lev=lev, subsample=subsample)
+icube = var_lev_date(url=url,var=var, mytime=mytime, lev=lev, subsample=1)
 map_plot(icube, model=model)
 
 # <codecell>
